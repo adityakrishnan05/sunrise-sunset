@@ -1,64 +1,77 @@
 const Engine = Matter.Engine;
-const World= Matter.World;
-const Bodies = Matter.Bodies;
+const World = Matter.World;
+const Bodies =  Matter.Bodies;
 const Constraint = Matter.Constraint;
+var bg,ground,gimg;
+var runner,runnerImg;
+var ice=[];
+var maxSnow=100;
 
-var engine, world;
-var backgroundImg;
-var hour;
-
-var bg = "sunrise1.png";
-
-function preload() {
-    // create getBackgroundImg( ) here
-    getBackgroundImg();
+function preload(){
+  bg=loadImage("snow2.jpg");
+  gimg=loadImage("ground.PNG");
+  runnerImg=loadAnimation("sc1.PNG","sc2.PNG","sc3.PNG","sc4.PNG","sc5.PNG","sc6.PNG","sc7.PNG","sc8.PNG","sc9.PNG","sc10.PNG","sc11.PNG","sc12.PNG")
 }
 
-function setup(){
-    var canvas = createCanvas(1200,700);
-    engine = Engine.create();
-    world = engine.world;
+function setup() {
+  createCanvas(1300,600);
+  
+  engine=Engine.create();
+  world= engine.world;
+  
+
+
+ground=createSprite(650,670);
+ground.addImage(gimg);
+ground.scale=3.2;
+ground.velocityX=-10;
+
+runner=createSprite(150,480);
+runner.addAnimation("runner",runnerImg)
+runner.scale=1.1;
+runner.velocityX=2;
+runner.setCollider("rectangle",15, -20,100,180) 
+
+if(frameCount % 275 === 0){
+  for(var i=0; i<maxSnow; i++){
+  ice.push(new Snow(random(0,1350), random(0,50)));
+  }
+  }
+
 
 }
 
-function draw(){
-     // add condition to check if any background image is there to add
-    if(backgroundImg)
-    background(backgroundImg);
+function draw() {
+  background(bg);  
+  Engine.update(engine);
 
-    Engine.update(engine);
-    // write code to display time in correct format here
-    fill("black");
-    textSize(30);
+  runner.collide(ground);
 
-    if(hour>=12){
-        text("Time : "+ hour%12 + " PM", 50,100);
-       }else if(hour==0){
-         text("Time : 12 AM",100,100);
-       }else{
-        text("Time : "+ hour%12 + " AM", 50,100);
-       }
+  if(ground.x < 530){
+    ground.x=600;
+  }
 
+  if(runner.x > 1200){
+    runner.x=150;
+  }
+
+  if(keyWentDown("space")&& runner.y >= 100) {
+    runner.velocityY = -12;
 }
 
-async function getBackgroundImg(){
+//add gravity
+runner.velocityY = runner.velocityY + 0.8
 
-    // write code to fetch time from API
-    var response = await fetch("http://worldtimeapi.org/api/timezone/Asia/Kolkata");
-
-    //change the data in JSON format
-    var responseJSON = await response.json();
-    var datetime = responseJSON.datetime;
+  for(var i = 0;i < maxSnow; i++){
+    ice[i].display();
+    ice[i].changePosition();
+    }    
     
-    // write code slice the datetime
-    hour = datetime.slice(11,13);
 
-    if(hour>=0 && hour<18 ){
-        bg = "sunrise.png";
-    }
-    else{
-        bg="sunset.png"
-    }
-    
-    backgroundImg = loadImage(bg);
+
+ground.display();
+
+  
+  drawSprites();
+
 }
